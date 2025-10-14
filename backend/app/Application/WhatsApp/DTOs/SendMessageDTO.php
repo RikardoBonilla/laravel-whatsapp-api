@@ -25,8 +25,8 @@ final readonly class SendMessageDTO
     public static function fromArray(array $data): self
     {
         return new self(
-            $data['phone_number'] ?? '',
-            $data['content'] ?? ''
+            $data['phone_number'] ?? $data['phone'] ?? '',
+            $data['content'] ?? $data['message'] ?? ''
         );
     }
 
