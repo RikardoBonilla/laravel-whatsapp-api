@@ -5,8 +5,6 @@ WORKDIR /var/www
 
 # Install system dependencies
 RUN apk add --no-cache \
-    build-base \
-    autoconf \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
@@ -18,6 +16,12 @@ RUN apk add --no-cache \
     git \
     curl \
     oniguruma-dev
+
+# Install build dependencies temporarily for PHP extensions
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    autoconf \
+    linux-headers
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
@@ -32,6 +36,15 @@ RUN docker-php-ext-install \
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
+
+# Install PCOV for code coverage (lighter than Xdebug)
+RUN pecl install pcov && docker-php-ext-enable pcov
+
+# Remove build dependencies
+RUN apk del .build-deps
+
+# Copy PCOV configuration
+COPY docker/php/pcov.ini /usr/local/etc/php/conf.d/pcov.ini
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
